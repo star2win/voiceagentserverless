@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { createFiberplane } from "@fiberplane/hono";
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import * as schema from "./db/schema";
-import * as twilio from "twilio";
+import twilio from "twilio";
 
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
