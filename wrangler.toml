@@ -8,7 +8,7 @@ database_name = "nextoutcome"
 database_id = "0489ac92-536c-4cd3-8e5e-07295dd32259"
 migrations_dir = "drizzle/migrations"
 
-main= = "src/index.ts"
+main = "src/index.ts"
 
 # [vars]
 # MY_VAR = "my-variable"
