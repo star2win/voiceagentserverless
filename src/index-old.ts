@@ -3,14 +3,6 @@ import { eq } from "drizzle-orm";
 import { createFiberplane } from "@fiberplane/hono";
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import * as schema from "./db/schema";
-import * as twilio from "twilio";
-
-const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
-const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
-const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER;
-const TEST_PHONE_NUMBER = process.env.TEST_PHONE_NUMBER;
-
-const twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
 // Types for environment variables and context
 type Bindings = {
@@ -93,55 +85,6 @@ const getUser = createRoute({
   },
 });
 
-// ElevenLabs webhook schema and route definition
-const ElevenLabsWebhookSchema = z.object({
-  caller_id: z.string(),
-  agent_id: z.string(),
-  called_number: z.string(),
-  call_sid: z.string(),
-}).openapi("ElevenLabsWebhook");
-
-const elevenLabsWebhookRoute = createRoute({
-  method: "post",
-  path: "/elevenlabs-webhook",
-  request: {
-    body: {
-      required: true,
-      content: {
-        "application/json": {
-          schema: ElevenLabsWebhookSchema,
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: z.object({
-            dynamic_variables: z.object({
-              callerId: z.string(),
-              agentId: z.string(),
-              calledNumber: z.string(),
-              callSid: z.string(),
-            }),
-          }),
-        },
-      },
-      description: "Dynamic variables returned successfully",
-    },
-    500: {
-      content: {
-        "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
-        },
-      },
-      description: "Internal server error",
-    },
-  },
-});
 
 const NewUserSchema = z.object({
   name: z.string().openapi({
@@ -207,21 +150,6 @@ app.openapi(root, (c) => {
       .returning();
 
     return c.json(newUser, 201);
-  })
-  .openapi(elevenLabsWebhookRoute, async (c) => {
-    try {
-      const webhookPayload = c.req.valid("json");
-      return c.json({
-        dynamic_variables: {
-          callerId: webhookPayload.caller_id.slice(-10),
-          agentId: webhookPayload.agent_id,
-          calledNumber: webhookPayload.called_number,
-          callSid: webhookPayload.call_sid,
-        },
-      });
-    } catch (error: any) {
-      return c.json({ error: "Internal server error" }, 500);
-    }
   })
   // Generate OpenAPI spec at /openapi.json
   .doc("/openapi.json", {
